@@ -10,18 +10,22 @@ for filename in os.listdir(folder_path):
         file_path = os.path.join(folder_path, filename)
         
         try:
-            # Read the CSV file with error handling
-            df = pd.read_csv(file_path, encoding='utf-8', errors='replace')
-            
-            # Add the new column with all values as 'EU'
-            df['Regulatory Authorisation'] = 'EU'
-            
-            # Save the updated dataframe back to the CSV file
-            df.to_csv(file_path, index=False, encoding='utf-8')
-            
-            print(f"Updated file: {filename}")
+            # Try reading the CSV file with utf-8 encoding
+            df = pd.read_csv(file_path, encoding='utf-8')
         
-        except Exception as e:
-            print(f"Failed to update file {filename}: {e}")
+        except UnicodeDecodeError:
+            print(f"UnicodeDecodeError: Switching to ISO-8859-1 for {filename}")
+            
+            # If utf-8 fails, try ISO-8859-1 encoding
+            df = pd.read_csv(file_path, encoding='ISO-8859-1')
+        
+        # Add the new column with all values as 'EU'
+        df['Regulatory Authorisation'] = 'EU'
+        
+        # Save the updated dataframe back to the CSV file
+        # You can use the same encoding that worked for reading
+        df.to_csv(file_path, index=False, encoding='utf-8')
+        
+        print(f"Updated file: {filename}")
 
-print("All files processed!")
+print("All files processed successfully!")
