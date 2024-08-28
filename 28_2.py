@@ -1,6 +1,11 @@
 import csv
 import io
-from datetime import datetime
+
+def clean_column_name(name):
+    return name.strip().replace('\n', '').replace('\r', '')
+
+def remove_bom(text):
+    return text.replace('\ufeff', '')
 
 def replace_special_chars(text):
     # Define your replacement mappings here
@@ -15,7 +20,7 @@ def replace_special_chars(text):
     return text
 
 def process_row(row):
-    idmp_class = row.get('idmp_class', '')
+    idmp_class = remove_bom(row.get('idmp_class', ''))
     physical_name = row.get('physcial_name', '')  # Note: 'physcial_name' typo is preserved as per your query
     attribute_value = row.get('attribute_value', '')
 
@@ -32,22 +37,26 @@ def process_row(row):
 
     # Apply special character replacement to all cells
     for key in row:
-        row[key] = replace_special_chars(row[key])
+        row[key] = replace_special_chars(remove_bom(row[key]))
 
     return row
 
 def process_csv(input_file, output_file):
-    with open(input_file, 'r', encoding='utf-8') as infile, \
+    with open(input_file, 'r', encoding='utf-8-sig') as infile, \
          open(output_file, 'w', newline='', encoding='utf-8') as outfile:
         
         reader = csv.DictReader(infile)
-        fieldnames = reader.fieldnames + ['attribute_source_value'] if 'attribute_source_value' not in reader.fieldnames else reader.fieldnames
+        fieldnames = [clean_column_name(name) for name in reader.fieldnames]
+        if 'attribute_source_value' not in fieldnames:
+            fieldnames.append('attribute_source_value')
         
         writer = csv.DictWriter(outfile, fieldnames=fieldnames)
         writer.writeheader()
         
         for row in reader:
-            new_row = process_row(row)
+            # Clean column names in each row
+            cleaned_row = {clean_column_name(k): v for k, v in row.items()}
+            new_row = process_row(cleaned_row)
             writer.writerow(new_row)
 
 # Usage
