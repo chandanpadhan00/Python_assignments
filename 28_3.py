@@ -46,7 +46,7 @@ def process_csv(input_file, output_file):
          open(output_file, 'w', newline='', encoding='utf-8') as outfile:
         
         reader = csv.DictReader(infile)
-        fieldnames = [name.strip().upper() for name in reader.fieldnames]
+        fieldnames = [name.strip() for name in reader.fieldnames]  # Keep original column names
         if 'ATTRIBUTE_SOURCE_VALUE' not in fieldnames:
             fieldnames.append('ATTRIBUTE_SOURCE_VALUE')
         
