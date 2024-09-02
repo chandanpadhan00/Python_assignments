@@ -39,14 +39,15 @@ def process_row(row):
     if idmp_class == 'Medicinal Product' and physical_name == 'MED_REG_AGN_LOC_ID' and attribute_value.strip() == '':
         row['ATTRIBUTE_VALUE'] = 'LOC-1006'
 
-    if idmp_class == 'Marketing Authorisation' and physical_name == 'MRKT_AUTH_HLDR_ORG_ID' and attribute_value.strip() == '':
+    # Updated conditions for points 4 and 5
+    if idmp_class == 'Marketing Authorisation' and physical_name == 'MRKT_AUTH_HLDR_ORG_ID' and attribute_value is None:
         row['ATTRIBUTE_VALUE'] = ''
 
-    if idmp_class == 'Marketing Authorisation' and physical_name == 'MRKT_AUTH_REGLTR_LOC_ID' and attribute_value.strip() == '':
+    if idmp_class == 'Marketing Authorisation' and physical_name == 'MRKT_AUTH_REGLTR_LOC_ID' and attribute_value is None:
         row['ATTRIBUTE_VALUE'] = ''
 
     # Replace single quotes with double single quotes
-    if "'" in attribute_value:
+    if attribute_value and "'" in attribute_value:
         row['ATTRIBUTE_VALUE'] = attribute_value.replace("'", "''")
 
     # Set attribute_source_value equal to attribute_value
@@ -54,7 +55,8 @@ def process_row(row):
 
     # Apply special character replacement to all cells
     for key in row:
-        row[key] = replace_special_chars(remove_bom(row[key]))
+        if row[key]:
+            row[key] = replace_special_chars(remove_bom(row[key]))
 
     # Check if the row should be deleted
     if 'DUMMY' in product_key.upper():
