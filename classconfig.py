@@ -2,28 +2,32 @@ import pandas as pd
 import json
 
 # Step 1: Load the CSV file
-df = pd.read_csv('your_file.csv')
+df = pd.read_csv('medicinal_product.csv')
 
-# Step 2: Infer the data types
-data_types = df.dtypes
+# Step 2: Initialize an empty dictionary for the JSON structure
+json_structure = {
+    "medicinal_product": {
+        "IDMP_CLASS": "Medicinal Product",
+        "ENTITY_NAME": "MedicinalProduct",
+        "ATTR_REF": {}
+    }
+}
 
-# Step 3: Create a class configuration in JSON format
-class_config = {}
-for column, dtype in data_types.items():
-    # Mapping pandas dtypes to JSON-compatible data types
-    if pd.api.types.is_integer_dtype(dtype):
-        json_type = 'integer'
-    elif pd.api.types.is_float_dtype(dtype):
-        json_type = 'float'
-    elif pd.api.types.is_bool_dtype(dtype):
-        json_type = 'boolean'
-    else:
-        json_type = 'string'
+# Step 3: Iterate over rows to populate the JSON structure
+for index, row in df.iterrows():
+    attr_key = row['PHYSICAL_NAME']
+    json_structure["medicinal_product"]["ATTR_REF"][row['ATTRIBUTE_NAME']] = {
+        "ATTRIBUTE_NAME": row['ATTRIBUTE_NAME'],
+        "PHYSICAL_NAME": row['PHYSICAL_NAME'],
+        "TYPE": row['TYPE']
+    }
     
-    class_config[column] = {"type": json_type}
+    # Add IDMP_LEVEL if it exists
+    if not pd.isnull(row['IDMP_LEVEL']):
+        json_structure["medicinal_product"]["ATTR_REF"][row['ATTRIBUTE_NAME']]["IDMP_LEVEL"] = row['IDMP_LEVEL']
 
 # Step 4: Convert the dictionary to a JSON object
-json_config = json.dumps(class_config, indent=4)
+json_output = json.dumps(json_structure, indent=4)
 
 # Output the JSON configuration
-print(json_config)
+print(json_output)
